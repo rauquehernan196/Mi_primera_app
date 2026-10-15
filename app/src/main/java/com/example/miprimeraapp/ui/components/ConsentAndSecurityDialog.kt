@@ -11,7 +11,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 
@@ -69,8 +68,13 @@ fun ConsentAndSecurityDialog(
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Text(
-                        text = "Estimado usuario, para brindarle la mejor experiencia y cumplir con los más altos estándares de ciberseguridad y protección de datos personales vigentes en Chile, requerimos su consentimiento informado y la autorización de los siguientes permisos:",
+                        text = "Estimado usuario, para brindarle la mejor experiencia y cumplir con los más altos estándares de ciberseguridad y protección de datos personales vigentes en Chile, requerimos su consentimiento informado y la autorización de los siguientes permisos y accesos:",
                         style = MaterialTheme.typography.bodyMedium
+                    )
+
+                    PermissionDetailItem(
+                        title = "🌐 Conexión a Internet y Red",
+                        description = "Permite la comunicación segura con servicios en la nube y la API de Gemini para el reconocimiento de objetos e inteligencia artificial con transmisión cifrada."
                     )
 
                     PermissionDetailItem(
@@ -121,7 +125,7 @@ fun ConsentAndSecurityDialog(
                         onCheckedChange = { acceptedTerms = it }
                     )
                     Text(
-                        text = "He leído y acepto los Términos de Seguridad, Política de Privacidad y el uso de los permisos solicitados.",
+                        text = "He leído y acepto los Términos de Seguridad, Política de Privacidad y el uso de los permisos y accesos solicitados.",
                         style = MaterialTheme.typography.bodySmall,
                         modifier = Modifier.weight(1f)
                     )

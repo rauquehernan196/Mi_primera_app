@@ -29,6 +29,7 @@ import androidx.credentials.CustomCredential
 import androidx.credentials.exceptions.GetCredentialException
 import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
+import com.example.miprimeraapp.data.FirebaseRepository
 import com.example.miprimeraapp.ui.components.AppTutorialDialog
 import com.example.miprimeraapp.ui.components.ConsentAndSecurityDialog
 import com.example.miprimeraapp.ui.components.PasswordRecoveryDialog
@@ -39,6 +40,7 @@ import com.example.miprimeraapp.ui.screens.HomeScreen
 import com.example.miprimeraapp.ui.screens.LoginScreen
 import com.example.miprimeraapp.ui.screens.ProfileScreen
 import com.example.miprimeraapp.ui.screens.SettingsScreen
+import com.example.miprimeraapp.ui.screens.SplashScreen
 import com.example.miprimeraapp.ui.theme.MiPrimeraAppTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -73,7 +75,7 @@ class MainActivity : ComponentActivity() {
                         fontScale = currentDensity.fontScale * fontScaleMultiplier
                     )
                 ) {
-                    var currentScreen by remember { mutableStateOf<Screen>(Screen.Login) }
+                    var currentScreen by remember { mutableStateOf<Screen>(Screen.Splash) }
                     var showConsentDialog by remember { mutableStateOf(true) }
                     var showTutorial by remember { mutableStateOf(false) }
                     var showRecoveryDialog by remember { mutableStateOf(false) }
@@ -89,6 +91,7 @@ class MainActivity : ComponentActivity() {
                     }
                     if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.S_V2) {
                         permissionsToRequest.add(Manifest.permission.READ_EXTERNAL_STORAGE)
+                        permissionsToRequest.add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
                     }
 
                     val permissionLauncher = rememberLauncherForActivityResult(
@@ -114,19 +117,23 @@ class MainActivity : ComponentActivity() {
                                 modifier = Modifier.padding(innerPadding)
                             ) { screen ->
                                 when (screen) {
+                                    is Screen.Splash -> {
+                                        SplashScreen(
+                                            onTimeout = {
+                                                currentScreen = Screen.Login
+                                            }
+                                        )
+                                    }
                                     is Screen.Login -> {
                                         LoginScreen(
                                             onLoginUser = { inputUser, inputPass ->
                                                 val lowerUser = inputUser.lowercase()
                                                 val storedPass = userAccounts[lowerUser]
-                                                if (storedPass != null && storedPass == inputPass) {
-                                                    currentScreen = Screen.Home(inputUser)
-                                                    if (!usersWhoSawTutorial.contains(inputUser)) {
-                                                        showTutorial = true
+                                                val isValidLocal = (storedPass != null && storedPass == inputPass) || (storedPass == null && inputPass.length >= 4)
+                                                if (isValidLocal) {
+                                                    if (storedPass == null) {
+                                                        userAccounts[lowerUser] = inputPass
                                                     }
-                                                    true
-                                                } else if (storedPass == null && inputPass.length >= 4) {
-                                                    userAccounts[lowerUser] = inputPass
                                                     currentScreen = Screen.Home(inputUser)
                                                     if (!usersWhoSawTutorial.contains(inputUser)) {
                                                         showTutorial = true
@@ -179,7 +186,6 @@ class MainActivity : ComponentActivity() {
                                                             }
                                                         }
                                                     } catch (e: GetCredentialException) {
-                                                        // Fallback for devices without Google accounts or credential manager picker cancellation
                                                         val googleUser = "Usuario Google Personal"
                                                         currentScreen = Screen.Home(googleUser)
                                                         if (!usersWhoSawTutorial.contains(googleUser)) {
@@ -263,7 +269,13 @@ class MainActivity : ComponentActivity() {
                                     showRecoveryDialog = false
                                 },
                                 onSubmitRecovery = { identifier ->
-                                    userAccounts.containsKey(identifier.lowercase()) || identifier.contains("@")
+                                    val success = userAccounts.containsKey(identifier.lowercase()) || identifier.contains("@")
+                                    if (success) {
+                                        CoroutineScope(Dispatchers.IO).launch {
+                                            FirebaseRepository.sendPasswordReset(identifier)
+                                        }
+                                    }
+                                    success
                                 }
                             )
                         }

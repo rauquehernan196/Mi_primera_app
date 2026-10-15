@@ -4,7 +4,6 @@ import android.graphics.Bitmap
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.result.launch
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -14,8 +13,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
@@ -55,7 +52,7 @@ fun HomeScreen(
 ) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
-    var selectedModuleIndex by remember { mutableIntStateOf(0) }
+    var selectedModuleIndex by remember { mutableIntStateOf(0) } // 0 = Todos, 1 = Aforo, 2 = Temp, 3 = Cámara, 4 = Historial
     val scrollState = rememberScrollState()
 
     val currentDateStr = remember {
@@ -185,7 +182,7 @@ fun HomeScreen(
                     )
 
                     NavigationDrawerItem(
-                        label = { Text("📍 1. Ubicación y Mapa", fontWeight = FontWeight.Medium) },
+                        label = { Text("🤖 1. Control de Aforo HC-SR04", fontWeight = FontWeight.Medium) },
                         selected = selectedModuleIndex == 1,
                         onClick = {
                             selectedModuleIndex = 1
@@ -195,7 +192,7 @@ fun HomeScreen(
                     )
 
                     NavigationDrawerItem(
-                        label = { Text("🤖 2. Control de Aforo HC-SR04", fontWeight = FontWeight.Medium) },
+                        label = { Text("🌡️ 2. Calidad de Temperatura", fontWeight = FontWeight.Medium) },
                         selected = selectedModuleIndex == 2,
                         onClick = {
                             selectedModuleIndex = 2
@@ -205,7 +202,7 @@ fun HomeScreen(
                     )
 
                     NavigationDrawerItem(
-                        label = { Text("🌡️ 3. Calidad de Temperatura", fontWeight = FontWeight.Medium) },
+                        label = { Text("📸 3. Reconocimiento por IA", fontWeight = FontWeight.Medium) },
                         selected = selectedModuleIndex == 3,
                         onClick = {
                             selectedModuleIndex = 3
@@ -215,20 +212,10 @@ fun HomeScreen(
                     )
 
                     NavigationDrawerItem(
-                        label = { Text("📸 4. Conteo por Cámara e IA", fontWeight = FontWeight.Medium) },
+                        label = { Text("📜 4. Historial de Alertas (Feed)", fontWeight = FontWeight.Medium) },
                         selected = selectedModuleIndex == 4,
                         onClick = {
                             selectedModuleIndex = 4
-                            scope.launch { drawerState.close() }
-                        },
-                        modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
-                    )
-
-                    NavigationDrawerItem(
-                        label = { Text("📜 5. Historial de Alertas (Feed)", fontWeight = FontWeight.Medium) },
-                        selected = selectedModuleIndex == 5,
-                        onClick = {
-                            selectedModuleIndex = 5
                             scope.launch { drawerState.close() }
                         },
                         modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
@@ -361,9 +348,9 @@ fun HomeScreen(
                     }
                 }
 
-                // Module Content Display
+                // Module Content Display (Map module removed)
                 if (selectedModuleIndex == 0 || selectedModuleIndex == 1) {
-                    // Module 1: Ubicación y Mapa
+                    // Module 1: Control de Aforo HC-SR04
                     Card(
                         shape = RoundedCornerShape(16.dp),
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
@@ -374,49 +361,7 @@ fun HomeScreen(
                             verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             Text(
-                                text = "📍 1. Ubicación y Monitoreo (Osorno)",
-                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
-                            )
-                            Text(
-                                text = "Coordenadas GPS Activas: -40.5725° S, 73.1353° W\nZona: Campus Universitario / Sector Industrial Osorno",
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(120.dp)
-                                    .padding(top = 4.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Canvas(modifier = Modifier.fillMaxSize()) {
-                                    drawRect(color = Color(0xFF3F51B5).copy(alpha = 0.2f))
-                                    drawLine(Color.Gray, Offset(0f, size.height / 2), Offset(size.width, size.height / 2), strokeWidth = 2f)
-                                    drawLine(Color.Gray, Offset(size.width / 2, 0f), Offset(size.width / 2, size.height), strokeWidth = 2f)
-                                    drawCircle(Color.Red, radius = 12f, center = Offset(size.width / 2, size.height / 2))
-                                }
-                                Text(
-                                    text = "📍 Osorno Center",
-                                    style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
-                                    color = MaterialTheme.colorScheme.error
-                                )
-                            }
-                        }
-                    }
-                }
-
-                if (selectedModuleIndex == 0 || selectedModuleIndex == 2) {
-                    // Module 2: Control de Aforo HC-SR04
-                    Card(
-                        shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Text(
-                                text = "🤖 2. Control de Aforo HC-SR04",
+                                text = "🤖 1. Control de Aforo HC-SR04",
                                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
                             )
                             Text(
@@ -451,8 +396,8 @@ fun HomeScreen(
                     }
                 }
 
-                if (selectedModuleIndex == 0 || selectedModuleIndex == 3) {
-                    // Module 3: Calidad de Temperatura
+                if (selectedModuleIndex == 0 || selectedModuleIndex == 2) {
+                    // Module 2: Calidad de Temperatura
                     Card(
                         shape = RoundedCornerShape(16.dp),
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
@@ -463,7 +408,7 @@ fun HomeScreen(
                             verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             Text(
-                                text = "🌡️ 3. Calidad de Temperatura Ambiental",
+                                text = "🌡️ 2. Calidad de Temperatura Ambiental",
                                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
                             )
                             Text(
@@ -480,8 +425,8 @@ fun HomeScreen(
                     }
                 }
 
-                if (selectedModuleIndex == 0 || selectedModuleIndex == 4) {
-                    // Module 4: Conteo por Cámara e IA (Gemini API)
+                if (selectedModuleIndex == 0 || selectedModuleIndex == 3) {
+                    // Module 3: Reconocimiento de Objetos y Personas por IA
                     Card(
                         shape = RoundedCornerShape(16.dp),
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
@@ -497,7 +442,7 @@ fun HomeScreen(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    text = "📸 4. Reconocimiento de Objetos y Personas",
+                                    text = "📸 3. Reconocimiento por IA (Gemini)",
                                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
                                 )
                                 TextButton(onClick = { showApiKeyDialog = true }) {
@@ -506,7 +451,7 @@ fun HomeScreen(
                             }
 
                             Text(
-                                text = "Capture una foto de la habitación. La IA de Gemini reconocerá y nombrará todas las personas y objetos presentes en la escena.",
+                                text = "Capture una foto. La IA de Gemini reconocerá y nombrará todas las personas y objetos presentes en la escena.",
                                 style = MaterialTheme.typography.bodyMedium
                             )
 
@@ -544,8 +489,8 @@ fun HomeScreen(
                     }
                 }
 
-                if (selectedModuleIndex == 0 || selectedModuleIndex == 5) {
-                    // Module 5: Historial de Alertas (Feed)
+                if (selectedModuleIndex == 0 || selectedModuleIndex == 4) {
+                    // Module 4: Historial de Alertas (Feed)
                     Card(
                         shape = RoundedCornerShape(16.dp),
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
@@ -556,7 +501,7 @@ fun HomeScreen(
                             verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             Text(
-                                text = "📜 5. Historial de Alertas (Feed)",
+                                text = "📜 4. Historial de Alertas (Feed)",
                                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
                             )
                             eventLogs.forEach { log ->
