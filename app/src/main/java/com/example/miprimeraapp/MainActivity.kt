@@ -72,8 +72,8 @@ class MainActivity : ComponentActivity() {
                 CompositionLocalProvider(
                     LocalDensity provides Density(
                         density = currentDensity.density,
-                        fontScale = currentDensity.fontScale * fontScaleMultiplier
-                    )
+                        fontScale = currentDensity.fontScale * fontScaleMultiplier,
+                    ),
                 ) {
                     var currentScreen by remember { mutableStateOf<Screen>(Screen.Splash) }
                     var showConsentDialog by remember { mutableStateOf(true) }
@@ -84,10 +84,15 @@ class MainActivity : ComponentActivity() {
                     val permissionsToRequest = mutableListOf(
                         Manifest.permission.CAMERA,
                         Manifest.permission.ACCESS_FINE_LOCATION,
-                        Manifest.permission.ACCESS_COARSE_LOCATION
+                        Manifest.permission.ACCESS_COARSE_LOCATION,
                     )
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                        permissionsToRequest.add(Manifest.permission.BLUETOOTH_SCAN)
+                        permissionsToRequest.add(Manifest.permission.BLUETOOTH_CONNECT)
+                    }
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                         permissionsToRequest.add(Manifest.permission.POST_NOTIFICATIONS)
+                        permissionsToRequest.add(Manifest.permission.NEARBY_WIFI_DEVICES)
                     }
                     if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.S_V2) {
                         permissionsToRequest.add(Manifest.permission.READ_EXTERNAL_STORAGE)
@@ -96,16 +101,15 @@ class MainActivity : ComponentActivity() {
 
                     val permissionLauncher = rememberLauncherForActivityResult(
                         contract = ActivityResultContracts.RequestMultiplePermissions(),
-                        onResult = { _ ->
-                            showConsentDialog = false
-                        }
-                    )
+                    ) { _ ->
+                        showConsentDialog = false
+                    }
 
                     // Persistent registered accounts map (Username -> Password)
                     val userAccounts = remember {
                         mutableStateMapOf(
                             "admin" to "1234",
-                            "osorno" to "1234"
+                            "osorno" to "1234",
                         )
                     }
 
@@ -114,14 +118,14 @@ class MainActivity : ComponentActivity() {
                             Crossfade(
                                 targetState = currentScreen,
                                 label = "ScreenTransition",
-                                modifier = Modifier.padding(innerPadding)
+                                modifier = Modifier.padding(innerPadding),
                             ) { screen ->
                                 when (screen) {
                                     is Screen.Splash -> {
                                         SplashScreen(
                                             onTimeout = {
                                                 currentScreen = Screen.Login
-                                            }
+                                            },
                                         )
                                     }
                                     is Screen.Login -> {
@@ -129,7 +133,7 @@ class MainActivity : ComponentActivity() {
                                             onLoginUser = { inputUser, inputPass ->
                                                 val lowerUser = inputUser.lowercase()
                                                 val storedPass = userAccounts[lowerUser]
-                                                val isValidLocal = (storedPass != null && storedPass == inputPass) || (storedPass == null && inputPass.length >= 4)
+                                                val isValidLocal = ((storedPass != null) && (storedPass == inputPass)) || ((storedPass == null) && (inputPass.length >= 4))
                                                 if (isValidLocal) {
                                                     if (storedPass == null) {
                                                         userAccounts[lowerUser] = inputPass
@@ -167,14 +171,14 @@ class MainActivity : ComponentActivity() {
                                                     try {
                                                         val credentialManager = CredentialManager.create(this@MainActivity)
                                                         val signInWithGoogleOption = GetSignInWithGoogleOption.Builder(
-                                                            serverClientId = "1059955523091-placeholder.apps.googleusercontent.com"
+                                                            serverClientId = "1059955523091-placeholder.apps.googleusercontent.com",
                                                         ).build()
                                                         val request = GetCredentialRequest.Builder()
                                                             .addCredentialOption(signInWithGoogleOption)
                                                             .build()
                                                         val result = credentialManager.getCredential(
                                                             context = this@MainActivity,
-                                                            request = request
+                                                            request = request,
                                                         )
                                                         val credential = result.credential
                                                         if (credential is CustomCredential && credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
@@ -185,13 +189,13 @@ class MainActivity : ComponentActivity() {
                                                                 showTutorial = true
                                                             }
                                                         }
-                                                    } catch (e: GetCredentialException) {
+                                                    } catch (_: GetCredentialException) {
                                                         val googleUser = "Usuario Google Personal"
                                                         currentScreen = Screen.Home(googleUser)
                                                         if (!usersWhoSawTutorial.contains(googleUser)) {
                                                             showTutorial = true
                                                         }
-                                                    } catch (e: Exception) {
+                                                    } catch (_: Exception) {
                                                         val googleUser = "Usuario Google Personal"
                                                         currentScreen = Screen.Home(googleUser)
                                                         if (!usersWhoSawTutorial.contains(googleUser)) {
@@ -202,7 +206,7 @@ class MainActivity : ComponentActivity() {
                                             },
                                             onForgotPassword = {
                                                 showRecoveryDialog = true
-                                            }
+                                            },
                                         )
                                     }
                                     is Screen.Home -> {
@@ -216,7 +220,7 @@ class MainActivity : ComponentActivity() {
                                             },
                                             onOpenSettings = {
                                                 currentScreen = Screen.Settings
-                                            }
+                                            },
                                         )
                                     }
                                     is Screen.Profile -> {
@@ -227,7 +231,7 @@ class MainActivity : ComponentActivity() {
                                             },
                                             onLogout = {
                                                 currentScreen = Screen.Login
-                                            }
+                                            },
                                         )
                                     }
                                     is Screen.Settings -> {
@@ -238,7 +242,7 @@ class MainActivity : ComponentActivity() {
                                             onFontSizeChanged = { fontSizeScale = it },
                                             onBack = {
                                                 currentScreen = Screen.Home("admin")
-                                            }
+                                            },
                                         )
                                     }
                                 }
@@ -252,7 +256,7 @@ class MainActivity : ComponentActivity() {
                                 },
                                 onAccept = {
                                     permissionLauncher.launch(permissionsToRequest.toTypedArray())
-                                }
+                                },
                             )
                         } else if (showTutorial) {
                             AppTutorialDialog(
@@ -261,7 +265,7 @@ class MainActivity : ComponentActivity() {
                                         usersWhoSawTutorial.add((currentScreen as Screen.Home).username)
                                     }
                                     showTutorial = false
-                                }
+                                },
                             )
                         } else if (showRecoveryDialog) {
                             PasswordRecoveryDialog(
@@ -276,7 +280,7 @@ class MainActivity : ComponentActivity() {
                                         }
                                     }
                                     success
-                                }
+                                },
                             )
                         }
                     }
